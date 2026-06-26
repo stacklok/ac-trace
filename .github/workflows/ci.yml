@@ -1,0 +1,45 @@
+# SPDX-FileCopyrightText: Copyright 2026 Stacklok, Inc.
+# SPDX-License-Identifier: LicenseRef-Stacklok-Proprietary
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-test:
+    name: Lint and Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: go.sum
+
+      - name: Check go.mod is pinned to minor version
+        run: |
+          if grep -qE '^go [0-9]+\.[0-9]+\.[0-9]+' go.mod; then
+            echo "go.mod must pin Go to a minor version (e.g. go 1.26), not a patch"
+            exit 1
+          fi
+
+      - uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9.2.0
+        with:
+          version: v2.12.2
+          args: --timeout=5m
+
+      - name: Test
+        run: go test ./...
+        timeout-minutes: 10
+
+      - name: Build
+        run: go build ./...

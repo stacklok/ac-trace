@@ -119,12 +119,45 @@ Add to your `Taskfile.yml`:
       - actrace --matrix
 ```
 
-Add to CI:
+## Use as a GitHub Action
+
+This repo is also a composite action, so a consumer repo can gate on the
+traceability check in one step — no Go setup, no `GOPRIVATE`, no
+module-read token. The action builds the binary from its own source and
+runs it against your checked-out tree.
+
+Because ac-trace is a private repo, share it org-wide once: in this repo's
+**Settings → Actions → General → Access**, choose **"Accessible from
+repositories in the organization"**. Then in any stacklok repo:
+
+```yaml
+      - uses: actions/checkout@<sha>   # the tree being checked
+      - uses: stacklok/ac-trace@v1     # pin to a tag or SHA
+        with:
+          args: --strict               # default; gate on landed-plan failures
+```
+
+Inputs:
+
+| Input | Default | Description |
+|---|---|---|
+| `args` | `--strict` | Arguments passed to `actrace`. Empty string for report-only; e.g. `--plan foo --strict`. |
+| `working-directory` | `.` | Repo root of the project being checked. |
+
+The action sets up Go from its own bundled `go.mod`, so the gate always
+builds against the version it was tested with.
+
+### Or call the binary directly
+
+If you'd rather not use the action, add to CI:
 
 ```yaml
       - name: Acceptance-criteria traceability gate
         run: actrace --strict
 ```
+
+(Requires `actrace` on `PATH`, or `go run github.com/stacklok/ac-trace/cmd/actrace@<ref> --strict`
+after the standard private-module auth step.)
 
 Run `actrace --matrix` and commit the generated
 `docs/acceptance/traceability.md`. Gate it for freshness with your
@@ -139,6 +172,20 @@ Run `actrace --matrix` and commit the generated
 - `internal/actrace/reverse.go` — orphan gate, staleness report.
 - `internal/actrace/report.go` — result model, `--json` renderer.
 - `internal/actrace/matrix.go` — committed traceability matrix renderer.
+
+## Development
+
+```
+go build ./...
+go test ./...
+golangci-lint run
+```
+
+CI (`.github/workflows/ci.yml`) runs lint + test + build on every push and
+PR to `main`, and enforces that `go.mod` is pinned to a minor Go version
+(e.g. `go 1.26`, not a patch). Lint config is `.golangci.yml`, mirroring
+Atrium's linter set; `gosec` is suppressed for `internal/actrace/` because
+the tool reads the repo tree by discovered path (G304) by design.
 
 ## Provenance
 
