@@ -514,6 +514,47 @@ func TestLoadSupersessorByNumber_ParsesRetiredStatusLines(t *testing.T) {
 	assert.Equal(t, want, got, "retired ADR number → supersessor number")
 }
 
+func TestLoadADRStatusByNumber_HandlesBothStatusForms(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	adrDir := filepath.Join(root, "docs", "adr")
+	require.NoError(t, os.MkdirAll(adrDir, 0o755))
+	write := func(name, body string) {
+		require.NoError(t, os.WriteFile(filepath.Join(adrDir, name), []byte(body), 0o644))
+	}
+
+	// The common `**Status:**` bold-line form.
+	write("0042-bold-line.md",
+		"# ADR-0042\n\n**Status:** Accepted, 2026-01-01.\n")
+	// The `## Status` heading form, value on the next non-empty line. Both
+	// internal/tools/adrstatus and this package must classify it the same way;
+	// dropping this branch silently read such an ADR as missing and flagged its
+	// TestADR_* pins (the ADR-0043 regression).
+	write("0043-heading-form.md",
+		"# ADR-0043: A decision\n\n## Status\n\nAccepted\n\n## Context\n")
+	// A retired ADR via the heading form classifies as superseded, not accepted.
+	write("0006-retired-heading.md",
+		"# ADR-0006\n\n## Status\n\n~~accepted~~. Superseded by ADR-0043.\n")
+	// A present ADR with no recognizable status form gets a "unknown" entry, not
+	// no entry. A missing entry reads as a missing ADR in the backward gate, so
+	// omitting a present file would wrongly flag its TestADR_* pins. Mirrors the
+	// original adrstatus.parseADR default.
+	write("0099-no-status.md",
+		"# ADR-0099: A decision with no status section\n\n## Context\n\nText.\n")
+
+	got, err := loadADRStatusByNumber(root)
+	require.NoError(t, err)
+
+	want := map[int]string{
+		42: "accepted",
+		43: "accepted",
+		6:  "superseded",
+		99: "unknown",
+	}
+	assert.Equal(t, want, got, "ADR number → classified status across both status forms")
+}
+
 func TestParseACs_FindsVerifyAfterWrappedCriterion(t *testing.T) {
 	t.Parallel()
 	// The criterion text wraps across lines, so the verify: sub-line is not

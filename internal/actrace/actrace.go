@@ -114,6 +114,12 @@ var (
 	// statusLineRE matches a `**Status:**` line (also `- **Status**:`),
 	// capturing the rest of the line, mirroring internal/tools/adrstatus.
 	statusLineRE = regexp.MustCompile(`(?i)^[-*\s]*\*\*status:?\*\*:?\s*(.*)$`)
+	// headRE matches a `## Status` heading on its own line. The status value
+	// then lives on the next non-empty line, not inline. Mirrors
+	// internal/tools/adrstatus, which supported both the `**Status:**` line and
+	// the `## Status` heading form; an ADR using the heading form must classify
+	// the same way it did before the extraction.
+	headRE = regexp.MustCompile(`(?i)^#{1,6}\s+status\s*$`)
 	// adrCiteRe captures a bare-text `ADR-NNNN` reference and the two characters
 	// that follow, so a linked `[ADR-0042](../adr/...)` (followed by "](") can be
 	// excluded — those stay covered by `task docs-check`.
@@ -987,9 +993,26 @@ func loadADRStatusByNumber(root string) (map[int]string, error) {
 		if readErr != nil {
 			return nil, fmt.Errorf("reading %s: %w", base, readErr)
 		}
-		for _, ln := range strings.Split(string(b), "\n") {
+		// A present ADR file always gets an entry. The original adrstatus.parseADR
+		// defaulted an unrecognized status to "unknown" rather than omitting the
+		// ADR; the backward gate treats a missing entry as a missing ADR (a
+		// violation), so omitting a present-but-statusless ADR would wrongly flag
+		// its TestADR_* pins. "unknown" is not retired, so it is not a violation.
+		byNum[n] = "unknown"
+		lines := strings.Split(string(b), "\n")
+		for i, ln := range lines {
 			if m := statusLineRE.FindStringSubmatch(ln); m != nil {
 				byNum[n] = classifyStatus(m[1])
+				break
+			}
+			// `## Status` heading: classify the next non-empty line.
+			if headRE.MatchString(ln) {
+				for _, next := range lines[i+1:] {
+					if w := strings.TrimSpace(next); w != "" {
+						byNum[n] = classifyStatus(w)
+						break
+					}
+				}
 				break
 			}
 		}
