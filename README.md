@@ -98,6 +98,49 @@ Plans declare a lifecycle on the `**Status:**` line:
 Only `landed` plans are gated. A plan names its tests before they are
 built, so enforcement waits until its implementation merges.
 
+## Journey integrity (opt-in, ADR-0077)
+
+An optional `.actrace.yml` at the repo root turns on extra checks. Absent,
+the tool behaves exactly as above — a repo that ships no config (e.g.
+Airlock) is unaffected.
+
+```yaml
+# .actrace.yml
+journey_integrity: true          # enable the Surface tag + journey-proof gate
+resolvers:
+  "edge:":                       # a custom verify-method prefix
+    command: ["scripts/resolve-edge.sh"]
+```
+
+**Custom `verify:` methods (e.g. `edge:`).** A token like
+`edge:agentloop->files.GetFile` is resolved by the command its prefix maps
+to in `resolvers`. ac-trace runs that command with the raw token as one
+final argv element — never through a shell — and reads the exit code: 0
+means the proof holds, non-zero means it does not. A custom-prefix token
+whose prefix has no configured resolver is a hard failure, never a silent
+pass.
+
+**The `**Surface:**` scenario tag.** With `journey_integrity: true`, each
+scenario in a landed plan carries a `**Surface:** user-facing |
+backend-foundation` field. A `user-facing` scenario must carry at least one
+AC whose `verify:` cites a **journey proof**:
+
+- a `ui-e2e-realfd:` Playwright spec (a `.realfd.spec.ts` under
+  `ui/tests/e2e/`) that asserts on a real server response
+  (`waitForResponse`), not on rendered DOM alone; or
+- a Go test under `test/e2e/` that is a real-cluster run — `//go:build
+  e2e`, not `synthetic`, and not importing `idpfake`.
+
+A mock spec, a unit test, a `test/e2e/` test that fakes its seam, or a
+`demonstration` / `scenario` / `manual` method cannot satisfy a
+`user-facing` scenario. A missing, unrecognised, or ambiguous tag is a hard
+failure.
+
+**Grandfathering.** A pre-existing `user-facing` scenario with no journey
+proof yet opts out with `journey-ok: <reason>` on an AC's verify line — but
+only when the reason cites a tracked issue (`#692` or an issues URL), so the
+debt is visible and attributed.
+
 ## Wiring into a repo
 
 Add to your `Taskfile.yml`:
@@ -169,6 +212,9 @@ Run `actrace --matrix` and commit the generated
   `actrace.Run`, exits with its return code).
 - `internal/actrace/actrace.go` — plan parser, status lifecycle, forward
   gate, backward gate, `Run()` entrypoint.
+- `internal/actrace/config.go` — the optional `.actrace.yml` loader.
+- `internal/actrace/resolver.go` — custom verify-method prefix→command hook.
+- `internal/actrace/journey.go` — the ADR-0077 Surface tag + journey-proof gate.
 - `internal/actrace/reverse.go` — orphan gate, staleness report.
 - `internal/actrace/report.go` — result model, `--json` renderer.
 - `internal/actrace/matrix.go` — committed traceability matrix renderer.
