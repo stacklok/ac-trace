@@ -255,13 +255,19 @@ func Run(args []string) int {
 		return 2
 	}
 
+	cfg, err := loadConfig(".")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "loading .actrace.yml:", err)
+		return 2
+	}
+
 	plans, err := resolvePlans(*plan)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "globbing plans:", err)
 		return 2
 	}
 
-	totalFailures := runPlans(plans, index, fe, ground)
+	totalFailures := runPlans(plans, index, fe, ground, cfg)
 
 	// The backward gate runs once over the whole tree, not per plan: every
 	// landed TestADR_NNNN_* must name an ADR that exists and is not retired.
@@ -333,14 +339,14 @@ func resolvePlans(plan string) ([]string, error) {
 // runPlans checks each plan and returns the total forward-check failures. The
 // README and meta plans are skipped; an unreadable or mis-statused plan is a
 // hard error that exits the process.
-func runPlans(plans []string, index map[string]string, fe feIndex, ground grounding) int {
+func runPlans(plans []string, index map[string]string, fe feIndex, ground grounding, cfg Config) int {
 	totalFailures := 0
 	for _, p := range plans {
 		base := filepath.Base(p)
 		if base == "README.md" || isMetaPlan(base) {
 			continue
 		}
-		failures, skipped, err := runPlan(p, index, fe, ground)
+		failures, skipped, err := runPlan(p, index, fe, ground, cfg)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "checking", p, ":", err)
 			os.Exit(2)
@@ -594,7 +600,9 @@ func loadGrounding(root string) (grounding, error) {
 // number of failures. draft and in-progress plans are reported but never gate,
 // so they return zero failures. A superseded plan is skipped (skipped=true). An
 // unrecognised status is a hard error.
-func runPlan(path string, index map[string]string, fe feIndex, ground grounding) (failures int, skipped bool, err error) {
+func runPlan(
+	path string, index map[string]string, fe feIndex, ground grounding, cfg Config,
+) (failures int, skipped bool, err error) {
 	b, err := os.ReadFile(path)
 	if err != nil {
 		return 0, false, err
@@ -609,18 +617,18 @@ func runPlan(path string, index map[string]string, fe feIndex, ground grounding)
 	}
 	acs := parseACs(lines)
 	if status == "landed" {
-		return checkLanded(path, acs, index, fe, ground), false, nil
+		return checkLanded(path, lines, acs, index, fe, ground, cfg), false, nil
 	}
 	// draft / in-progress: report only, never gate.
-	reportPlan(path, status, acs, lines, index, fe)
+	reportPlan(path, status, acs, lines, index, fe, cfg)
 	return 0, false, nil
 }
 
 // reportPlan prints a draft / in-progress plan's coverage without gating.
-func reportPlan(path, status string, acs []acEntry, lines []string, index map[string]string, fe feIndex) {
+func reportPlan(path, status string, acs []acEntry, lines []string, index map[string]string, fe feIndex, cfg Config) {
 	fmt.Printf("(%s, report-only) ", status)
 	if hasAnyVerify(acs) {
-		checkStructured(path, acs, index, fe)
+		checkStructured(path, acs, index, fe, cfg)
 		return
 	}
 	checkProse(path, lines, index)
@@ -629,7 +637,9 @@ func reportPlan(path, status string, acs []acEntry, lines []string, index map[st
 // checkLanded runs the forward gate on a landed plan and returns the number of
 // failures: zero structured ACs; an AC with no verify: field; a verify: test
 // that does not resolve; or a bare-text ADR / Principle that grounds to nothing.
-func checkLanded(path string, acs []acEntry, index map[string]string, fe feIndex, ground grounding) int {
+func checkLanded(
+	path string, lines []string, acs []acEntry, index map[string]string, fe feIndex, ground grounding, cfg Config,
+) int {
 	fmt.Printf("== %s ==  [landed]\n", strings.TrimPrefix(path, "./"))
 	if len(acs) == 0 {
 		fmt.Println("  ✗ landed plan has zero ACx.y criteria — must assert at least one")
@@ -652,8 +662,12 @@ func checkLanded(path string, acs []acEntry, index map[string]string, fe feIndex
 			}
 			failures += checkUIRefs(e, fe)
 			failures += checkRenderFromWireGate(e, fe)
+			failures += checkResolverRefs(e, cfg)
 		}
 		failures += checkGrounding(e, ground)
+	}
+	if cfg.JourneyIntegrity {
+		failures += checkJourneyIntegrity(lines, acs, fe, index)
 	}
 	fmt.Printf("  %d ACs · %d failure(s)\n", len(acs), failures)
 	return failures
@@ -820,7 +834,7 @@ func hasAnyVerify(acs []acEntry) bool {
 // checkStructured evaluates a plan's verify: fields. Test-method criteria have
 // every named Go test and `ui:<path>` reference checked; non-test methods are
 // accepted.
-func checkStructured(path string, acs []acEntry, index map[string]string, fe feIndex) int {
+func checkStructured(path string, acs []acEntry, index map[string]string, fe feIndex, cfg Config) int {
 	fmt.Printf("== %s ==  [structured]\n", strings.TrimPrefix(path, "./"))
 	missing, unannotated, testACs, methodACs := 0, 0, 0, 0
 	for _, e := range acs {
@@ -839,6 +853,7 @@ func checkStructured(path string, acs []acEntry, index map[string]string, fe feI
 				}
 			}
 			missing += checkUIRefs(e, fe)
+			missing += checkResolverRefs(e, cfg)
 		}
 	}
 	fmt.Printf("  %d ACs · %d test-verified · %d method · %d unannotated · %d missing\n",

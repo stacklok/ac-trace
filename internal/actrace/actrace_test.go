@@ -117,7 +117,7 @@ func TestCheckStructured_IgnoresProseAndCountsMissing(t *testing.T) {
 	index := map[string]string{"TestThing_Exists": "x_test.go"}
 
 	acs := parseACs(strings.Split(body, "\n"))
-	missing := checkStructured(plan, acs, index, nil)
+	missing := checkStructured(plan, acs, index, nil, Config{})
 	// Only TestThing_Missing counts; the prose `TestThing_Retired` is ignored.
 	assert.Equal(t, 1, missing)
 }
@@ -289,7 +289,7 @@ func TestADR_0065_LandedPlanVerifyTestMustExist(t *testing.T) {
 			content := "# A plan\n\n**Status:** " + tc.status + ", 2026-06-17.\n\n" + tc.body
 			require.NoError(t, os.WriteFile(plan, []byte(content), 0o644))
 
-			fail, skip, err := runPlan(plan, index, nil, ground)
+			fail, skip, err := runPlan(plan, index, nil, ground, Config{})
 			if tc.wantStatusErr {
 				require.Error(t, err, "an unrecognised status must be a hard error")
 				return
@@ -694,7 +694,7 @@ func TestCheckLanded_ResolvesUITestReference(t *testing.T) {
 	// the resolution failures. (AC1.2 has no resolvable FE proof so the gate
 	// does not fire for it; AC1.3 is ambiguous so the gate also does not
 	// fire — checkRenderFromWireGate skips cites that don't resolve to one.)
-	assert.Equal(t, 4, checkLanded("fe.md", acs, map[string]string{}, fe, ground))
+	assert.Equal(t, 4, checkLanded("fe.md", nil, acs, map[string]string{}, fe, ground, Config{}))
 }
 
 // TestADR_0065_RenderFromWireGateDefaultDeny pins the frontend half of the
@@ -771,7 +771,7 @@ func TestADR_0065_RenderFromWireGateDefaultDeny(t *testing.T) {
 			t.Parallel()
 			index := map[string]string{"TestThing_Exists": "x_test.go"}
 			acs := []acEntry{{id: "AC1.1", verify: tc.verify, hasVerify: true, body: "AC1.1: a behaviour"}}
-			got := checkLanded("p.md", acs, index, fe, ground)
+			got := checkLanded("p.md", nil, acs, index, fe, ground, Config{})
 			assert.Equal(t, tc.wantFail, got > 0, "strict-failure decision")
 		})
 	}
@@ -820,7 +820,7 @@ func TestADR_0065_RenderFromWireGateMislabel(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			acs := []acEntry{{id: "AC1.1", verify: tc.verify, hasVerify: true, body: "AC1.1: a behaviour"}}
-			got := checkLanded("p.md", acs, map[string]string{}, fe, ground)
+			got := checkLanded("p.md", nil, acs, map[string]string{}, fe, ground, Config{})
 			assert.Equal(t, tc.wantFail, got > 0, "strict-failure decision")
 		})
 	}
@@ -907,7 +907,7 @@ func TestADR_0065_RealfdProofType(t *testing.T) { //nolint:paralleltest // captu
 			acs := []acEntry{{id: "AC1.1", verify: tc.verify, hasVerify: true, body: "AC1.1: a behaviour"}}
 			var failures int
 			out := captureOutput(func() {
-				failures = checkLanded("p.md", acs, map[string]string{}, fe, ground)
+				failures = checkLanded("p.md", nil, acs, map[string]string{}, fe, ground, Config{})
 			})
 			assert.Equal(t, tc.wantFail, failures > 0, "strict-failure decision")
 			if tc.wantMessage != "" {
