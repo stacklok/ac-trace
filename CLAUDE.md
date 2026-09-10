@@ -1,7 +1,7 @@
 # ac-trace
 
-Go CLI tool that gates acceptance-criteria traceability for Stacklok Go
-moduliths (Airlock, Atrium). Every numbered AC in a
+Go CLI tool that gates acceptance-criteria traceability for Go moduliths.
+Every numbered AC in a
 `docs/acceptance/<plan>.md` carries a `verify:` sub-line naming its
 proof; this tool checks those proofs resolve in the tree.
 
@@ -40,37 +40,31 @@ usage/internal error). Never call `os.Exit` from the library.
   `docs/acceptance/*.md`, `docs/adr/NNNN-*.md`, and
   `docs/design/principles.md` relative to `.`.
 - Front-end proof vocabulary (`ui:`, `ui-e2e:`, `ui-unit:`,
-  `ui-e2e-realfd:`) is Atrium-specific. In a repo with no `ui/` dir the
+  `ui-e2e-realfd:`) is for front-end repos. In a repo with no `ui/` dir the
   spec index is empty and all `ui:` checks are no-ops. Do not remove this
-  logic — Atrium depends on it.
+  logic — consuming repos depend on it.
 - The ADR-0077 journey-integrity gate (`config.go`, `resolver.go`,
   `journey.go`) is **opt-in**: it fires only for a repo that ships an
   `.actrace.yml`. Absent config → zero `Config` → every new check off, so
-  a repo like Airlock is unaffected. `journey_integrity: true` enables the
-  `**Surface:**` tag + journey-proof gate; `resolvers:` maps a
+  a repo that ships no config is unaffected. `journey_integrity: true` enables
+  the `**Surface:**` tag + journey-proof gate; `resolvers:` maps a
   custom `verify:` prefix (e.g. `edge:`) to a command. The journey-proof
   location/substance conventions (`ui/tests/e2e/*.realfd.spec.ts`,
-  `test/e2e/`, `synthetic`, `idpfake`, `waitForResponse`) are Atrium-shaped
+  `test/e2e/`, `synthetic`, `idpfake`, `waitForResponse`) are front-end-shaped
   like the `ui:` vocabulary and no-op where those paths don't exist.
 
 ## Things that will bite you
 
-- **The backward gate inlines adrstatus.** The original Atrium code did
-  `exec.Command("go", "run", "./internal/tools/adrstatus")`. That
-  dependency is inlined here as `loadADRStatusByNumber` + `classifyStatus`
-  in `actrace.go`. If you change ADR status classification logic, change
-  it in one place — there is no separate adrstatus tool in this repo.
-- **`classifyStatus` is copied from Atrium's adrstatus.** If Atrium's
-  `classifyStatus` changes, this copy drifts. Check Atrium's
-  `internal/tools/adrstatus/main.go` before changing status
-  classification.
+- **The backward gate inlines adrstatus.** The original code invoked the
+  standalone adrstatus tool. That dependency is inlined here as
+  `loadADRStatusByNumber` + `classifyStatus` in `actrace.go`. If you change ADR
+  status classification logic, change it in one place — there is no separate
+  adrstatus tool in this repo.
 - **`Run()` returns an exit code, it does not call `os.Exit`.** Only
   `cmd/actrace/main.go` calls `os.Exit`. Library code must stay
   exit-clean for testability.
-- **Tests assume the old Atrium `package main` layout.** They were
-  ported verbatim and now live in `package actrace`. If you rename a
-  function the tests call, update the test too — there is no separate
-  test package.
+- **Tests were ported from the original tool.** They now live in `package
+  actrace`. If you rename a function the tests call, update the test too.
 
 ## Verification
 

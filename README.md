@@ -1,13 +1,9 @@
 # ac-trace
 
-Acceptance-criteria traceability gate for Stacklok Go moduliths. Every
+Acceptance-criteria traceability gate for Go moduliths. Every
 numbered acceptance criterion in a `docs/acceptance/<plan>.md` carries a
 `verify:` sub-line naming its proof. This tool checks that every named
 proof resolves in the tree.
-
-Extracted from Atrium's `internal/tools/actrace` (ADR-0065) so both repos
-share one gate implementation instead of a copied convention with no
-enforcement.
 
 ## Install
 
@@ -101,8 +97,7 @@ built, so enforcement waits until its implementation merges.
 ## Journey integrity (opt-in, ADR-0077)
 
 An optional `.actrace.yml` at the repo root turns on extra checks. Absent,
-the tool behaves exactly as above — a repo that ships no config (e.g.
-Airlock) is unaffected.
+the tool behaves exactly as above — a repo that ships no config is unaffected.
 
 ```yaml
 # .actrace.yml
@@ -138,7 +133,7 @@ failure.
 
 **Grandfathering.** A pre-existing `user-facing` scenario with no journey
 proof yet opts out with `journey-ok: <reason>` on an AC's verify line — but
-only when the reason cites a tracked issue (`#692` or an issues URL), so the
+only when the reason cites a tracked issue (`#123` or an issues URL), so the
 debt is visible and attributed.
 
 ## Wiring into a repo
@@ -169,9 +164,7 @@ traceability check in one step — no Go setup, no `GOPRIVATE`, no
 module-read token. The action builds the binary from its own source and
 runs it against your checked-out tree.
 
-Because ac-trace is a private repo, share it org-wide once: in this repo's
-**Settings → Actions → General → Access**, choose **"Accessible from
-repositories in the organization"**. Then in any stacklok repo:
+Use it in any repo:
 
 ```yaml
       - uses: actions/checkout@<sha>   # the tree being checked
@@ -199,8 +192,7 @@ If you'd rather not use the action, add to CI:
         run: actrace --strict
 ```
 
-(Requires `actrace` on `PATH`, or `go run github.com/stacklok/ac-trace/cmd/actrace@<ref> --strict`
-after the standard private-module auth step.)
+(Requires `actrace` on `PATH`, or `go run github.com/stacklok/ac-trace/cmd/actrace@<ref> --strict`.)
 
 Run `actrace --matrix` and commit the generated
 `docs/acceptance/traceability.md`. Gate it for freshness with your
@@ -229,17 +221,17 @@ golangci-lint run
 
 CI (`.github/workflows/ci.yml`) runs lint + test + build on every push and
 PR to `main`, and enforces that `go.mod` is pinned to a minor Go version
-(e.g. `go 1.26`, not a patch). Lint config is `.golangci.yml`, mirroring
-Atrium's linter set; `gosec` is suppressed for `internal/actrace/` because
-the tool reads the repo tree by discovered path (G304) by design.
+(e.g. `go 1.26`, not a patch). Lint config is `.golangci.yml`; `gosec` is
+suppressed for `internal/actrace/` because the tool reads the repo tree by
+discovered path (G304) by design.
 
 ## Provenance
 
-Lifted from Atrium's `internal/tools/actrace` plus the `classifyStatus`
-logic from `internal/tools/adrstatus`, with the external process
-dependency inlined. The design decisions live in Atrium's
-[ADR-0065](https://github.com/stacklok/atrium/blob/main/docs/adr/0065-acceptance-criteria-carry-verify-field-gated-by-actrace.md).
+ac-trace was originally developed as an in-repo tool and extracted into this
+standalone module so multiple repos can share one gate implementation. The ADR
+status-classification logic is inlined in `internal/actrace/actrace.go` (see
+`classifyStatus`).
 
 ## License
 
-Copyright 2026 Stacklok, Inc. LicenseRef-Stacklok-Proprietary.
+Copyright 2026 Stacklok, Inc. Apache-2.0 — see LICENSE.

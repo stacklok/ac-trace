@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: Copyright 2026 Stacklok, Inc.
-// SPDX-License-Identifier: LicenseRef-Stacklok-Proprietary
+// SPDX-License-Identifier: Apache-2.0
 
 package actrace
 
@@ -66,13 +66,13 @@ func TestADR_0077_GrandfatherOptOutRequiresIssue(t *testing.T) { //nolint:parall
 		{
 			name: "opt-out citing an issue number grandfathers the scenario",
 			body: "**Surface:** user-facing\n" +
-				"- AC1.1: renders.\n  - verify: ui-e2e:mock; journey-ok: real-FD migration tracked in #692\n",
+				"- AC1.1: renders.\n  - verify: ui-e2e:mock; journey-ok: real-FD migration tracked in #123\n",
 			want: 0,
 		},
 		{
 			name: "opt-out citing an issues URL grandfathers the scenario",
 			body: "**Surface:** user-facing\n" +
-				"- AC1.1: renders.\n  - verify: ui-e2e:mock; journey-ok: see https://github.com/stacklok/atrium/issues/692\n",
+				"- AC1.1: renders.\n  - verify: ui-e2e:mock; journey-ok: see https://github.com/example/repo/issues/123\n",
 			want: 0,
 		},
 		{

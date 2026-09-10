@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: Copyright 2026 Stacklok, Inc.
-# SPDX-License-Identifier: LicenseRef-Stacklok-Proprietary
+# SPDX-License-Identifier: Apache-2.0
 
 version: "2"
 run:
@@ -33,11 +33,11 @@ linters:
   settings:
     goconst:
       ignore-tests: true
-      # Atrium used 5. The lift inlined the adrstatus status-classification
-      # logic into this one package (see README "Provenance"), concentrating
-      # status literals ("superseded" etc.) that Atrium had split across two
-      # packages, each under the threshold. 6 keeps goconst meaningful while
-      # tolerating that concentration without editing the lifted source.
+      # The extraction inlined the adrstatus status-classification logic into
+      # this one package, concentrating status literals ("superseded" etc.)
+      # that were previously split across two packages, each under the
+      # threshold. 6 keeps goconst meaningful while tolerating that
+      # concentration.
       min-occurrences: 6
     gocyclo:
       min-complexity: 15
@@ -68,16 +68,16 @@ linters:
       - linters:
           - lll
         path: .golangci.yml
-      # Run is the CLI flag-dispatch entrypoint (lifted from Atrium's main(),
-      # complexity 16 vs the threshold 15). A dispatcher is inherently branchy;
-      # gocyclo stays at 15 for every other function.
+      # Run is the CLI flag-dispatch entrypoint (adapted from the original
+      # in-repo tool's main(), complexity 16 vs the threshold 15). A dispatcher
+      # is inherently branchy; gocyclo stays at 15 for every other function.
       - linters:
           - gocyclo
         text: "func `Run`"
       # actrace is a CLI tool that reads files by discovered path
-      # (filepath.Walk + os.ReadFile): G304 is inherent to its job. Atrium
-      # suppressed gosec for internal/tools/ (where this lived) for the same
-      # reason; the exclusion follows the code to internal/actrace/.
+      # (filepath.Walk + os.ReadFile): G304 is inherent to its job. The original
+      # in-repo location suppressed gosec for the same reason; the exclusion
+      # follows the code to internal/actrace/.
       - linters:
           - gosec
         path: internal/actrace/

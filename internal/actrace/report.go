@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: Copyright 2026 Stacklok, Inc.
-// SPDX-License-Identifier: LicenseRef-Stacklok-Proprietary
+// SPDX-License-Identifier: Apache-2.0
 
 // This file holds the result model the actrace tool computes once and renders
 // three ways: the terminal report (the report-only / --strict surface),
 // indented JSON (--json, the automation interface), and a generated, committed
 // traceability matrix (--matrix, docs/acceptance/traceability.md). The model is
 // populated from the same plan walk the forward gate uses, so all three views
-// agree by construction. Issue #443, mechanism under ADR-0065.
+// agree by construction. This mechanism is defined by ADR-0065.
 
 package actrace
 

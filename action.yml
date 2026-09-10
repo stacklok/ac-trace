@@ -1,19 +1,14 @@
 # SPDX-FileCopyrightText: Copyright 2026 Stacklok, Inc.
-# SPDX-License-Identifier: LicenseRef-Stacklok-Proprietary
+# SPDX-License-Identifier: Apache-2.0
 
-# Composite action so a private repo can share this gate org-wide without
-# being public: set this repo's Settings -> Actions -> General -> Access to
-# "Accessible from repositories in the organization", then any stacklok repo
-# can `uses: stacklok/ac-trace@<ref>`.
-#
-# The binary is built from THIS action's own checked-out source
-# ($GITHUB_ACTION_PATH), never `go install`-ed as a module — so the consumer
-# needs no GOPRIVATE, no module-read token, and no Docker. The actrace run
-# step executes in the caller's workspace (the default working directory for
-# composite steps), so it scans the consumer's tree, not the action's.
+# Composite action that builds the binary from this action's own source
+# ($GITHUB_ACTION_PATH), rather than installing it as a module. Consumers need
+# no GOPRIVATE, module-read token, or Docker. The actrace run step executes in
+# the caller's workspace (the default working directory for composite steps),
+# so it scans the consumer's tree, not the action's.
 
 name: 'ac-trace'
-description: 'Acceptance-criteria traceability gate (ADR-0065): verify every verify: proof in docs/acceptance/ resolves in the tree.'
+description: 'Acceptance-criteria traceability gate: verify every verify: proof in docs/acceptance/ resolves in the tree.'
 branding:
   icon: 'check-circle'
   color: 'green'

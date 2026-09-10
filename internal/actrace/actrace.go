@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: Copyright 2026 Stacklok, Inc.
-// SPDX-License-Identifier: LicenseRef-Stacklok-Proprietary
+// SPDX-License-Identifier: Apache-2.0
 
 // Package actrace reports acceptance-criteria → test coverage for the plans
 // under docs/acceptance/: every test a plan names as the proof of a criterion
 // should exist in the tree. It is the report-only stage of the traceability
-// work tracked in issue #443.
+// work.
 //
 // # Two modes
 //
@@ -61,8 +61,8 @@
 // citations ([ADR-xxxx](../adr/...)) stay covered by `task docs-check`, so the
 // bare-text grounding check is only for un-linked references.
 //
-// SCOPE: name-presence only, mirroring internal/tools/adrstatus. actrace does
-// not check that a test's body defends the AC, nor that it passes.
+// SCOPE: name-presence only, mirroring the standalone adrstatus tool. actrace
+// does not check that a test's body defends the AC, nor that it passes.
 package actrace
 
 import (
@@ -112,13 +112,13 @@ var (
 	acLineRe     = regexp.MustCompile(`^- (AC[0-9]+\.[0-9]+):`)
 	verifyLineRe = regexp.MustCompile(`^\s*-\s*verify:\s*(.*)$`)
 	// statusLineRE matches a `**Status:**` line (also `- **Status**:`),
-	// capturing the rest of the line, mirroring internal/tools/adrstatus.
+	// capturing the rest of the line, mirroring the standalone adrstatus tool.
 	statusLineRE = regexp.MustCompile(`(?i)^[-*\s]*\*\*status:?\*\*:?\s*(.*)$`)
 	// headRE matches a `## Status` heading on its own line. The status value
-	// then lives on the next non-empty line, not inline. Mirrors
-	// internal/tools/adrstatus, which supported both the `**Status:**` line and
-	// the `## Status` heading form; an ADR using the heading form must classify
-	// the same way it did before the extraction.
+	// then lives on the next non-empty line. The standalone adrstatus tool
+	// supported both the `**Status:**` line and the `## Status` heading form;
+	// an ADR using the heading form must classify the same way it did before the
+	// extraction.
 	headRE = regexp.MustCompile(`(?i)^#{1,6}\s+status\s*$`)
 	// adrCiteRe captures a bare-text `ADR-NNNN` reference and the two characters
 	// that follow, so a linked `[ADR-0042](../adr/...)` (followed by "](") can be
@@ -135,14 +135,14 @@ var (
 	// docs/design/principles.md, used to learn the valid 1..N range.
 	principleItemRe = regexp.MustCompile(`^(\d+)\.\s+\*\*`)
 	// adrTestNameRe binds a TestADR_NNNN_* declaration's name to exactly four
-	// digits followed by `_`, mirroring internal/tools/adrstatus so a query for
-	// 0019 never matches TestADR_0190_*.
+	// digits followed by `_`, mirroring the standalone adrstatus tool so a
+	// query for 0019 never matches TestADR_0190_*.
 	adrTestNameRe = regexp.MustCompile(`^TestADR_(\d{4})_`)
 	// retiredRE matches the passive "Superseded ... by" / "Deprecated" a retired
 	// ADR uses. It does NOT match the active "Supersedes" the *superseding*
 	// ADR uses (different ending), so ADR-0013 ("Supersedes ADR-0006") stays
 	// "accepted" while ADR-0006 ("Superseded ... by ADR-0013") reads "superseded".
-	// Inlined from internal/tools/adrstatus.
+	// Inlined from the standalone adrstatus tool.
 	retiredRE   = regexp.MustCompile(`(?i)\b(superseded|deprecated)\b`)
 	firstWordRE = regexp.MustCompile(`[A-Za-z]+`)
 	// supersessorRe captures the supersessor ADR number named on a retired ADR's
@@ -987,11 +987,11 @@ func adrTestNames(index map[string]string) []string {
 }
 
 // loadADRStatusByNumber classifies every ADR under docs/adr/ into a
-// status-by-number map. The classification mirrors what the adrstatus tool
-// (Atrium's internal/tools/adrstatus) produced when this logic lived there:
-// a struck-through status line reads as superseded/deprecated, otherwise the
-// first word wins. Inlining it here removes the external process dependency
-// the extracted package would otherwise carry.
+// status-by-number map. It mirrors the original adrstatus classification so
+// both status forms behave identically: a struck-through status line reads as
+// superseded/deprecated, otherwise the first word wins. Inlining it here
+// removes the external process dependency the extracted package would
+// otherwise carry.
 func loadADRStatusByNumber(root string) (map[int]string, error) {
 	matches, err := filepath.Glob(filepath.Join(root, "docs/adr/[0-9][0-9][0-9][0-9]-*.md"))
 	if err != nil {
@@ -1042,7 +1042,7 @@ func loadADRStatusByNumber(root string) (map[int]string, error) {
 // is now superseded") or use a compound like "non-deprecated", and those must
 // stay "accepted". When the leading status is struck through, the retired
 // keyword on the line names the kind; otherwise the first word wins. This is
-// the classifyStatus function inlined from internal/tools/adrstatus.
+// the classifyStatus function inlined from the standalone adrstatus tool.
 func classifyStatus(s string) string {
 	s = strings.TrimSpace(s)
 	if strings.HasPrefix(s, "~~") {

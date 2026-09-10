@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: Copyright 2026 Stacklok, Inc.
-// SPDX-License-Identifier: LicenseRef-Stacklok-Proprietary
+// SPDX-License-Identifier: Apache-2.0
 
 // Command actrace reports acceptance-criteria → test coverage for the plans
 // under docs/acceptance/: every test a plan names as the proof of a criterion

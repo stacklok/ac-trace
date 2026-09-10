@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright 2026 Stacklok, Inc.
-// SPDX-License-Identifier: LicenseRef-Stacklok-Proprietary
+// SPDX-License-Identifier: Apache-2.0
 
-// This file adds the two report-only reverse checks tracked in issue #443.
+// This file adds two report-only reverse checks.
 // The forward gate asks "does every test a landed plan names exist?"; the
 // backward gate asks "does every TestADR_NNNN_* name a live ADR?". Neither can
 // answer two reverse-direction questions:

@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: Copyright 2026 Stacklok, Inc.
-// SPDX-License-Identifier: LicenseRef-Stacklok-Proprietary
+// SPDX-License-Identifier: Apache-2.0
 
 package actrace
 
@@ -131,8 +131,8 @@ func goTestIsRealCluster(path string) bool {
 // specHasNetworkAssertion reports whether a Playwright spec asserts on a real
 // server response rather than on rendered DOM alone. The signal is a
 // `waitForResponse` (or `waitForResponseEvent`) call — a spec that only checks
-// the DOM renders fine against a mock regardless of the backend, which is how
-// #483 / #508 shipped green (ADR-0077 substance rule).
+// the DOM renders fine against a mock regardless of the backend, allowing a
+// broken end-to-end journey to appear green (ADR-0077 substance rule).
 func specHasNetworkAssertion(path string) bool {
 	b, err := os.ReadFile(path) //nolint:gosec // path comes from the front-end spec index, not user input
 	if err != nil {
@@ -286,7 +286,7 @@ func evaluateScenario(n int, g *scenarioGroup) int {
 func evaluateUserFacing(n int, g *scenarioGroup) int {
 	switch {
 	case g.sawOptOut && !g.optOutValid:
-		fmt.Printf("  ✗ scenario %d: journey-ok: opt-out must cite a tracked issue (e.g. #692)\n", n)
+		fmt.Printf("  ✗ scenario %d: journey-ok: opt-out must cite a tracked issue (e.g. #123)\n", n)
 		return 1
 	case g.optOutValid:
 		return 0

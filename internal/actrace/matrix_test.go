@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: Copyright 2026 Stacklok, Inc.
-// SPDX-License-Identifier: LicenseRef-Stacklok-Proprietary
+// SPDX-License-Identifier: Apache-2.0
 
 package actrace
 
@@ -66,7 +66,7 @@ func fixturePlans() []PlanCoverage {
 }
 
 // TestADR_0065_TraceabilityMatrixGolden pins the structural shape of the
-// generated traceability matrix (ADR-0065, issue #443): plans sorted by path, a
+// generated traceability matrix (ADR-0065): plans sorted by path, a
 // repo roll-up table, a fully-proven landed plan collapsed to a summary line, a
 // draft plan collapsed to a note, a mixed landed plan rendered as per-scenario
 // AC tables with glyph+word status, method ACs always showing their reason, a
@@ -142,7 +142,7 @@ func section(t *testing.T, doc, start, end string) string {
 }
 
 // TestADR_0065_TraceabilityJSONShape pins the --json automation interface
-// (ADR-0065, issue #443): the freshly-computed Report round-trips through JSON
+// (ADR-0065): the freshly-computed Report round-trips through JSON
 // with the documented field names, a test proof carries its resolved source
 // file (the deep link the Markdown omits), a method proof carries its method
 // word and reason, and an unmet proof reports resolves=false.

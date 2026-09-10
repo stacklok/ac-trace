@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: Copyright 2026 Stacklok, Inc.
-// SPDX-License-Identifier: LicenseRef-Stacklok-Proprietary
+// SPDX-License-Identifier: Apache-2.0
 
 package actrace
 
@@ -40,7 +40,7 @@ func TestADR_0065_OrphanGateExcusesMarkedScaffolding(t *testing.T) {
 }
 
 // TestADR_0065_ReverseOrphanReport pins the orphan half of the reverse checks
-// from ADR-0065 (issue #443): a scenario test (Test<Plan>_Scenario<N>_*) claimed
+// from ADR-0065: a scenario test (Test<Plan>_Scenario<N>_*) claimed
 // by no landed plan's verify: field is reported untracked, and a scenario test a
 // landed plan claims — directly or through a family stem — is not. The check is
 // scoped to scenario tests so the hundreds of TestADR_*/TestPrinciple* tests
@@ -147,7 +147,7 @@ func TestADR_0065_ReverseOrphanScopesToScenarioTests(t *testing.T) {
 }
 
 // TestADR_0065_DraftStalenessReport pins the staleness half of the reverse
-// checks from ADR-0065 (issue #443): a draft plan whose every verify: test
+// checks from ADR-0065: a draft plan whose every verify: test
 // already resolves is flagged as a candidate to flip to landed, and a draft plan
 // with at least one still-missing verify: test is not. A draft plan with no
 // test-verified criterion is not flagged either, since there is no landed test

@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: Copyright 2026 Stacklok, Inc.
-// SPDX-License-Identifier: LicenseRef-Stacklok-Proprietary
+// SPDX-License-Identifier: Apache-2.0
 
 package actrace
 
@@ -527,8 +527,8 @@ func TestLoadADRStatusByNumber_HandlesBothStatusForms(t *testing.T) {
 	// The common `**Status:**` bold-line form.
 	write("0042-bold-line.md",
 		"# ADR-0042\n\n**Status:** Accepted, 2026-01-01.\n")
-	// The `## Status` heading form, value on the next non-empty line. Both
-	// internal/tools/adrstatus and this package must classify it the same way;
+	// The `## Status` heading form, value on the next non-empty line. This
+	// package must classify both status forms like the original adrstatus;
 	// dropping this branch silently read such an ADR as missing and flagged its
 	// TestADR_* pins (the ADR-0043 regression).
 	write("0043-heading-form.md",
@@ -596,12 +596,12 @@ func TestFESpecStem(t *testing.T) {
 		want string
 		ok   bool
 	}{
-		{"ui/src/lib/atrium/__tests__/skill-loaded-stream.test.ts", "ui/src/lib/atrium/__tests__/skill-loaded-stream", true},
+		{"ui/src/lib/example/__tests__/skill-loaded-stream.test.ts", "ui/src/lib/example/__tests__/skill-loaded-stream", true},
 		{"ui/src/components/chat/__tests__/chip-unions-from-live-frame.test.tsx", "ui/src/components/chat/__tests__/chip-unions-from-live-frame", true},
 		{"ui/tests/e2e/auth.spec.ts", "ui/tests/e2e/auth", true},
 		// A leading "./" is trimmed so the stem is a stable repo-relative path.
 		{"./ui/tests/e2e/chat.spec.tsx", "ui/tests/e2e/chat", true},
-		{"internal/tools/actrace/main.go", "", false},
+		{"cmd/actrace/main.go", "", false},
 		{"foo_test.go", "", false},
 	}
 	for _, tc := range cases {
@@ -623,7 +623,7 @@ func TestFEIndex_Matches(t *testing.T) {
 	fe := feIndex{
 		"ui/src/components/chat/__tests__/message-bubble.test.tsx",
 		"ui/src/components/skills/__tests__/message-bubble.test.tsx",
-		"ui/src/lib/atrium/__tests__/skill-loaded-stream.test.ts",
+		"ui/src/lib/example/__tests__/skill-loaded-stream.test.ts",
 	}
 	cases := []struct {
 		name string
@@ -633,7 +633,7 @@ func TestFEIndex_Matches(t *testing.T) {
 		{
 			name: "unique basename resolves to one spec",
 			cite: "ui:skill-loaded-stream",
-			want: []string{"ui/src/lib/atrium/__tests__/skill-loaded-stream.test.ts"},
+			want: []string{"ui/src/lib/example/__tests__/skill-loaded-stream.test.ts"},
 		},
 		{
 			name: "colliding basename matches both specs",
@@ -672,7 +672,7 @@ func TestFEIndex_Matches(t *testing.T) {
 func TestCheckLanded_ResolvesUITestReference(t *testing.T) {
 	t.Parallel()
 	fe := feIndex{
-		"ui/src/lib/atrium/__tests__/skill-loaded-stream.test.ts",
+		"ui/src/lib/example/__tests__/skill-loaded-stream.test.ts",
 		"ui/src/components/chat/__tests__/message-bubble.test.tsx",
 		"ui/src/components/skills/__tests__/message-bubble.test.tsx",
 	}
@@ -712,7 +712,7 @@ func TestADR_0065_RenderFromWireGateDefaultDeny(t *testing.T) {
 	// One e2e spec under ui/tests/e2e/, two unit specs under ui/src/**.
 	fe := feIndex{
 		"ui/tests/e2e/chat-rich.spec.ts",
-		"ui/src/lib/atrium/__tests__/safe-url.test.ts",
+		"ui/src/lib/example/__tests__/safe-url.test.ts",
 		"ui/src/components/chat/__tests__/message-bubble.test.tsx",
 	}
 	ground := grounding{adrNums: map[int]bool{}, principleCount: 13}
@@ -785,7 +785,7 @@ func TestADR_0065_RenderFromWireGateMislabel(t *testing.T) {
 	t.Parallel()
 	fe := feIndex{
 		"ui/tests/e2e/chat-rich.spec.ts",
-		"ui/src/lib/atrium/__tests__/safe-url.test.ts",
+		"ui/src/lib/example/__tests__/safe-url.test.ts",
 	}
 	ground := grounding{adrNums: map[int]bool{}, principleCount: 13}
 
@@ -856,7 +856,7 @@ func TestADR_0065_RealfdProofType(t *testing.T) { //nolint:paralleltest // captu
 	fe := feIndex{
 		"ui/tests/e2e/skill-loaded.realfd.spec.ts",
 		"ui/tests/e2e/chat-rich.spec.ts",
-		"ui/src/lib/atrium/__tests__/safe-url.test.ts",
+		"ui/src/lib/example/__tests__/safe-url.test.ts",
 	}
 	ground := grounding{adrNums: map[int]bool{}, principleCount: 13}
 

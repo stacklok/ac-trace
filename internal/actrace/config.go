@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: Copyright 2026 Stacklok, Inc.
-// SPDX-License-Identifier: LicenseRef-Stacklok-Proprietary
+// SPDX-License-Identifier: Apache-2.0
 
 package actrace
 
@@ -11,11 +11,10 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Config is the optional `.actrace.yml` at a repo root. It is how a consuming
-// repo turns on the opt-in features added for ADR-0077 (Atrium) without
-// changing behaviour for a repo that ships no config (Airlock). A missing file
-// yields the zero Config, which disables every feature — so the tool behaves
-// exactly as it did before this file existed.
+// Config is the optional `.actrace.yml` at a repo root. It is how consuming
+// repos turn on opt-in journey-proof enforcement; repos without the config are
+// unaffected. A missing file yields the zero Config, which disables every
+// feature — so the tool behaves exactly as it did before this file existed.
 type Config struct {
 	// Resolvers maps a verify-method prefix (including its colon, e.g.
 	// "edge:") to an external command that decides whether a token with that

@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: Copyright 2026 Stacklok, Inc.
-// SPDX-License-Identifier: LicenseRef-Stacklok-Proprietary
+// SPDX-License-Identifier: Apache-2.0
 
 // This file renders the generated, committed traceability matrix at
 // docs/acceptance/traceability.md (actrace --matrix). The output is
 // deterministic — plans sorted by path, ACs in parsed order, no timestamps — so
 // `task verify-gen` can gate it on byte-stability. The matrix never gates: a
 // draft plan with not-yet-built tests renders its gaps as `❌ unmet` rather than
-// exiting non-zero. Issue #443, mechanism under ADR-0065.
+// exiting non-zero. This mechanism is defined by ADR-0065.
 
 package actrace
 
