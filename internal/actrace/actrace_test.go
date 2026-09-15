@@ -145,6 +145,8 @@ func TestParseStatus_ClassifiesAndRejectsTypos(t *testing.T) {
 		wantErr bool
 	}{
 		{"draft", "**Status:** draft, 2026-06-17.", "draft", false},
+		{"proposed", "**Status:** proposed, 2026-06-17.", "proposed", false},
+		{"approved", "**Status:** approved, 2026-06-17.", "approved", false},
 		{"in-progress", "**Status:** in-progress, 2026-06-17.", "in-progress", false},
 		{"landed", "**Status:** landed, 2026-06-17.", "landed", false},
 		{"superseded", "**Status:** superseded by foo.", "superseded", false},
@@ -169,8 +171,8 @@ func TestParseStatus_ClassifiesAndRejectsTypos(t *testing.T) {
 // the forward half of the actrace gate from ADR-0065: a landed plan must carry
 // at least one structured criterion, every criterion must name a resolving
 // verify: test (or a non-test method with a reason), and every bare-text ADR /
-// Principle it cites must ground to a real decision. draft and in-progress
-// plans are reported but never gate; a superseded plan is skipped; an
+// Principle it cites must ground to a real decision. draft, proposed, approved, and
+// in-progress plans are reported but never gate; a superseded plan is skipped; an
 // unrecognised status is a hard error so a typo cannot silently disable the
 // gate.
 func TestADR_0065_LandedPlanVerifyTestMustExist(t *testing.T) {
@@ -202,6 +204,18 @@ func TestADR_0065_LandedPlanVerifyTestMustExist(t *testing.T) {
 		{
 			name:     "draft plan with missing verify test does not fail",
 			status:   "draft",
+			body:     "- AC1.1: behaviour holds.\n  - verify: `TestThing_Missing`\n",
+			wantFail: false,
+		},
+		{
+			name:     "proposed plan with missing verify test does not fail",
+			status:   "proposed",
+			body:     "- AC1.1: behaviour holds.\n  - verify: `TestThing_Missing`\n",
+			wantFail: false,
+		},
+		{
+			name:     "approved plan with missing verify test does not fail",
+			status:   "approved",
 			body:     "- AC1.1: behaviour holds.\n  - verify: `TestThing_Missing`\n",
 			wantFail: false,
 		},
