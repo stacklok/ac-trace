@@ -87,6 +87,8 @@ Plans declare a lifecycle on the `**Status:**` line:
 | Status | Gated? | Behavior |
 |---|---|---|
 | `draft` | No | Reported, never fails |
+| `proposed` | No | Reported, never fails |
+| `approved` | No | Reported, never fails |
 | `in-progress` | No | Reported, never fails |
 | `landed` | Yes | All forward checks enforced |
 | `superseded` | — | Skipped entirely |

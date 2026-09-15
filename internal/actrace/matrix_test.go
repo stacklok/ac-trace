@@ -95,9 +95,9 @@ func TestADR_0065_TraceabilityMatrixGolden(t *testing.T) {
 	assert.Contains(t, zeta, "All 2 criteria proven.")
 	assert.NotContains(t, zeta, "| AC |")
 
-	// Draft plan collapses to a note, no AC table.
+	// Pre-landed plan collapses to a note, no AC table.
 	beta := section(t, got, "## beta-draft.md", "## zeta")
-	assert.Contains(t, beta, "Draft plan")
+	assert.Contains(t, beta, "Pre-landed plan")
 	assert.NotContains(t, beta, "| AC |")
 
 	// Mixed landed plan renders per-scenario AC tables with glyph + word.

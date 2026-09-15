@@ -48,8 +48,8 @@
 // # Plan-status lifecycle and the forward gate
 //
 // A plan declares its lifecycle on the `**Status:**` line, one of draft /
-// in-progress / landed / superseded (per ADR-0065). With --strict the gate
-// bites only a `landed` plan; draft and in-progress plans still print their
+// proposed / approved / in-progress / landed / superseded. With --strict the gate
+// bites only a `landed` plan; draft, proposed, approved, and in-progress plans still print their
 // report but never cause a non-zero exit, because a plan names its tests before
 // they are built. A superseded plan is skipped entirely. An unrecognised status
 // is a hard error — a typo must not silently disable the gate.
@@ -152,10 +152,10 @@ var (
 	supersessorRe = regexp.MustCompile(`(?i)(?:supersed\w*|deprecat\w*)[^\n]*?\bADR-(\d{3,4})\b`)
 )
 
-// isValidStatus reports whether w is one of the ADR-0065 lifecycle words.
+// isValidStatus reports whether w is one of the acceptance-plan lifecycle words.
 func isValidStatus(w string) bool {
 	switch w {
-	case "draft", "in-progress", "landed", "superseded":
+	case "draft", "proposed", "approved", "in-progress", "landed", "superseded":
 		return true
 	default:
 		return false
@@ -548,7 +548,7 @@ func parseStatus(lines []string) (string, error) {
 		}
 		w := firstStatusWord(m[1])
 		if !isValidStatus(w) {
-			return "", fmt.Errorf("unrecognised status %q (want draft / in-progress / landed / superseded)", w)
+			return "", fmt.Errorf("unrecognised status %q (want draft / proposed / approved / in-progress / landed / superseded)", w)
 		}
 		return w, nil
 	}
@@ -597,7 +597,7 @@ func loadGrounding(root string) (grounding, error) {
 
 // runPlan classifies a plan by status and decides whether --strict would gate
 // it. A landed plan is run through the forward checks; the returned count is the
-// number of failures. draft and in-progress plans are reported but never gate,
+// number of failures. draft, proposed, approved, and in-progress plans are reported but never gate,
 // so they return zero failures. A superseded plan is skipped (skipped=true). An
 // unrecognised status is a hard error.
 func runPlan(
@@ -619,12 +619,12 @@ func runPlan(
 	if status == "landed" {
 		return checkLanded(path, lines, acs, index, fe, ground, cfg), false, nil
 	}
-	// draft / in-progress: report only, never gate.
+	// draft / proposed / approved / in-progress: report only, never gate.
 	reportPlan(path, status, acs, lines, index, fe, cfg)
 	return 0, false, nil
 }
 
-// reportPlan prints a draft / in-progress plan's coverage without gating.
+// reportPlan prints a pre-landed plan's coverage without gating.
 func reportPlan(path, status string, acs []acEntry, lines []string, index map[string]string, fe feIndex, cfg Config) {
 	fmt.Printf("(%s, report-only) ", status)
 	if hasAnyVerify(acs) {

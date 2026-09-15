@@ -88,14 +88,14 @@ func writeRollup(b *strings.Builder, plans []PlanCoverage) {
 }
 
 // writePlanSection writes one plan's `##` section. A fully-proven landed plan
-// collapses to a one-line summary; a draft plan collapses to nothing beyond its
+// collapses to a one-line summary; a pre-landed plan collapses to nothing beyond its
 // roll-up row; every other plan lists its ACs grouped by scenario.
 func writePlanSection(b *strings.Builder, p PlanCoverage) {
 	fmt.Fprintf(b, "## %s\n\n", escapePipe(filepath.Base(p.Path)))
 	fmt.Fprintf(b, "Status: %s.\n\n", p.Status)
 
-	if p.Status == "draft" || p.Status == "in-progress" {
-		b.WriteString("Draft plan — criteria are tracked but not yet gated; see the JSON form for current proof state.\n\n")
+	if p.Status == "draft" || p.Status == "proposed" || p.Status == "approved" || p.Status == "in-progress" {
+		b.WriteString("Pre-landed plan — criteria are tracked but not yet gated; see the JSON form for current proof state.\n\n")
 		return
 	}
 	if p.Status == "landed" && p.Counts.ACs > 0 && fullyProven(p) {
